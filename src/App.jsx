@@ -111,7 +111,7 @@ function App() {
   const [frequencies, setFrequencies] = useState({})
   const [combinations, setCombinations] = useState({})
   const [numberAnalysis, setNumberAnalysis] = useState(null)
-  
+
   // Função para processar arquivo Excel/CSV
   const processFile = useCallback(async (file) => {
     return new Promise((resolve, reject) => {
@@ -122,20 +122,30 @@ function App() {
           const data = e.target.result
           let workbook
           
-          if (file.name.endsWith('.csv')) {
+          if (file.name.endsWith(".csv")) {
             // Processar CSV
             const text = new TextDecoder().decode(data)
-            const lines = text.split('\n').filter(line => line.trim())
-            const headers = lines[0].split(',').map(h => h.trim())
+            const lines = text.split("\n").filter(line => line.trim())
+            const headers = lines[0].split(",").map(h => h.trim())
             
             const jsonData = lines.slice(1).map(line => {
-              const values = line.split(',').map(v => v.trim())
+              const values = line.split(",").map(v => v.trim())
               const row = {}
               headers.forEach((header, index) => {
-                if (header.includes('Bola') || header === 'Concurso') {
+                if (header.includes("Bola") || header === "Concurso") {
                   row[header] = parseInt(values[index]) || 0
+                } else if (header.includes("Rateio") || header.includes("Acumulado") || header.includes("Arrecadação") || header.includes("Estimativa")) {
+                  row[header] = parseFloat(values[index]?.replace(/[^0-9,-]+/g, "").replace(",", ".")) || 0
+                } else if (header === "Data do Sorteio") {
+                  // Tentar parsear a data no formato DD/MM/YYYY
+                  const dateParts = values[index].split("/")
+                  if (dateParts.length === 3) {
+                    row[header] = `${dateParts[0]}/${dateParts[1]}/${dateParts[2]}`
+                  } else {
+                    row[header] = values[index]
+                  }
                 } else {
-                  row[header] = values[index] || ''
+                  row[header] = values[index] || ""
                 }
               })
               return row
@@ -144,11 +154,38 @@ function App() {
             resolve(jsonData)
           } else {
             // Processar Excel
-            workbook = XLSX.read(data, { type: 'array' })
+            workbook = XLSX.read(data, { type: "array" })
             const sheetName = workbook.SheetNames[0]
             const worksheet = workbook.Sheets[sheetName]
-            const jsonData = XLSX.utils.sheet_to_json(worksheet)
-            resolve(jsonData)
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false })
+            
+            // Ajustar o formato da data e valores monetários para Excel
+            const formattedData = jsonData.map(row => {
+              const newRow = { ...row }
+              if (newRow["Data do Sorteio"]) {
+                // As datas do Excel podem vir como números ou strings
+                if (typeof newRow["Data do Sorteio"] === "number") {
+                  const date = XLSX.SSF.parse_date_code(newRow["Data do Sorteio"])
+                  newRow["Data do Sorteio"] = `${date.d}/${date.m}/${date.y}`
+                } else if (typeof newRow["Data do Sorteio"] === "string") {
+                  const dateParts = newRow["Data do Sorteio"].split("/")
+                  if (dateParts.length === 3) {
+                    newRow["Data do Sorteio"] = `${dateParts[0]}/${dateParts[1]}/${dateParts[2]}`
+                  } else {
+                    // Tentar parsear outros formatos de data se necessário
+                    newRow["Data do Sorteio"] = newRow["Data do Sorteio"]
+                  }
+                }
+              }
+              // Tratar colunas de rateio e valores monetários
+              ;["Rateio 6 acertos", "Rateio 5 acertos", "Rateio 4 acertos", "Acumulado 6 acertos", "Arrecadação Total", "Estimativa prêmio", "Acumulado Sorteio Especial Mega da Virada"].forEach(col => {
+                if (typeof newRow[col] === "string") {
+                  newRow[col] = parseFloat(newRow[col].replace(/[^0-9,-]+/g, "").replace(",", ".")) || 0
+                }
+              })
+              return newRow
+            })
+            resolve(formattedData)
           }
         } catch (error) {
           reject(error)
