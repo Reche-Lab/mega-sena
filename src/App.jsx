@@ -295,6 +295,8 @@ function App() {
   // Função para analisar números selecionados
   const analyzeSelectedNumbers = useCallback(() => {
     if (!megaSenaData || selectedNumbers.length < 6) return
+
+    console.log('Analisando números selecionados:', selectedNumbers)
     
     const analysis = {
       selectedNumbers,
@@ -372,17 +374,17 @@ function App() {
   }
   
   // Usar dados reais se disponíveis, senão usar mock
-  const currentData = megaSenaData || []
+  // const currentData = megaSenaData || []
   const currentStats = megaSenaData ? {
     totalDraws: megaSenaData.length,
     mostFrequent: Object.entries(frequencies)
       .map(([num, freq]) => ({ number: parseInt(num), frequency: freq }))
       .sort((a, b) => b.frequency - a.frequency)
-      .slice(0, 6),
+      .slice(0, 21),
     leastFrequent: Object.entries(frequencies)
       .map(([num, freq]) => ({ number: parseInt(num), frequency: freq }))
       .sort((a, b) => a.frequency - b.frequency)
-      .slice(0, 6)
+      .slice(0, 21)
   } : mockStats
   
   const handleFileUpload = useCallback(async (file) => {
@@ -668,7 +670,7 @@ function App() {
               <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
                 <TabsTrigger value="analysis">Análise</TabsTrigger>
-                <TabsTrigger value="generator">Gerador</TabsTrigger>
+                <TabsTrigger value="generator">Estatísticas</TabsTrigger>
                 <TabsTrigger value="history">Histórico</TabsTrigger>
               </TabsList>
 
@@ -682,7 +684,7 @@ function App() {
                       <BarChart3 className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold text-green-600">{mockStats.totalDraws}</div>
+                      <div className="text-2xl font-bold text-green-600">{currentStats.totalDraws}</div>
                       <p className="text-xs text-muted-foreground">Desde 1996</p>
                     </CardContent>
                   </Card>
@@ -693,7 +695,7 @@ function App() {
                       <TrendingUp className="h-4 w-4 text-orange-500" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold text-orange-600">6</div>
+                      <div className="text-2xl font-bold text-orange-600">21</div>
                       <p className="text-xs text-muted-foreground">Mais frequentes</p>
                     </CardContent>
                   </Card>
@@ -704,7 +706,7 @@ function App() {
                       <Calendar className="h-4 w-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold text-blue-600">6</div>
+                      <div className="text-2xl font-bold text-blue-600">21</div>
                       <p className="text-xs text-muted-foreground">Menos frequentes</p>
                     </CardContent>
                   </Card>
@@ -715,11 +717,11 @@ function App() {
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-lg">Números Mais Frequentes</CardTitle>
-                      <CardDescription>Top 6 números mais sorteados</CardDescription>
+                      <CardDescription>Top números mais sorteados</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-3 gap-3">
-                        {mockStats.mostFrequent.map(({ number, frequency }) => (
+                        {currentStats.mostFrequent.map(({ number, frequency }) => (
                           <LotteryBall 
                             key={`hot-${number}`}
                             number={number} 
@@ -734,11 +736,11 @@ function App() {
                   <Card>
                     <CardHeader>
                       <CardTitle className="text-lg">Números Menos Frequentes</CardTitle>
-                      <CardDescription>Top 6 números menos sorteados</CardDescription>
+                      <CardDescription>Top números menos sorteados</CardDescription>
                     </CardHeader>
                     <CardContent>
                       <div className="grid grid-cols-3 gap-3">
-                        {mockStats.leastFrequent.map(({ number, frequency }) => (
+                        {currentStats.leastFrequent.map(({ number, frequency }) => (
                           <LotteryBall 
                             key={`cold-${number}`}
                             number={number} 
@@ -784,11 +786,11 @@ function App() {
                         <div className="grid grid-cols-10 gap-2 mt-2">
                           {Array.from({length: 60}, (_, i) => i + 1).map(number => (
                             <button
-                              key={`number-${number}`}
-                              onClick={() => toggleNumber(number)}
+                              key={`number-${String(number)}`}
+                              onClick={() => toggleNumber(String(number))}
                               className={`
                                 w-8 h-8 rounded text-xs font-medium transition-all duration-200
-                                ${selectedNumbers.includes(number) 
+                                ${selectedNumbers.includes(String(number)) 
                                   ? 'bg-green-600 text-white shadow-md' 
                                   : 'bg-gray-100 hover:bg-gray-200 text-gray-700'}
                               `}
@@ -839,8 +841,8 @@ function App() {
                                 </CardTitle>
                               </CardHeader>
                               <CardContent>
-                                <div className="space-y-2">
-                                  {Object.entries(combos).slice(0, 5).map(([combo, freq]) => (
+                                <div className="space-y-2 max-h-96 overflow-y-auto">
+                                  {Object.entries(combos).sort((a, b) => b[1] - a[1]).map(([combo, freq]) => (
                                     <div key={combo} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                                       <span className="font-medium">[{combo}]:</span>
                                       <span className="text-blue-600">{freq} vezes</span>
@@ -871,17 +873,17 @@ function App() {
                 {/* Rankings de Combinações */}
                 {megaSenaData && combinations && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Top 20 Pares */}
+                    {/* Top 50 Pares */}
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-lg">Top 20 Pares Mais Frequentes</CardTitle>
+                        <CardTitle className="text-lg">Top 50 Pares Mais Frequentes</CardTitle>
                         <CardDescription>Combinações de 2 números que mais saíram</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2 max-h-96 overflow-y-auto">
                           {Object.entries(combinations.pairs || {})
                             .sort(([,a], [,b]) => b - a)
-                            .slice(0, 20)
+                            .slice(0, 50)
                             .map(([combo, freq], index) => (
                               <div key={combo} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                                 <span className="font-medium">#{index + 1} [{combo}]</span>
@@ -892,17 +894,17 @@ function App() {
                       </CardContent>
                     </Card>
 
-                    {/* Bottom 20 Pares */}
+                    {/* Bottom 50 Pares */}
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-lg">Bottom 20 Pares Menos Frequentes</CardTitle>
+                        <CardTitle className="text-lg">Bottom 50 Pares Menos Frequentes</CardTitle>
                         <CardDescription>Combinações de 2 números que menos saíram</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2 max-h-96 overflow-y-auto">
                           {Object.entries(combinations.pairs || {})
                             .sort(([,a], [,b]) => a - b)
-                            .slice(0, 20)
+                            .slice(0, 50)
                             .map(([combo, freq], index) => (
                               <div key={combo} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                                 <span className="font-medium">#{index + 1} [{combo}]</span>
@@ -913,17 +915,17 @@ function App() {
                       </CardContent>
                     </Card>
 
-                    {/* Top 20 Trios */}
+                    {/* Top 50 Trios */}
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-lg">Top 20 Trios Mais Frequentes</CardTitle>
+                        <CardTitle className="text-lg">Top 50 Trios Mais Frequentes</CardTitle>
                         <CardDescription>Combinações de 3 números que mais saíram</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2 max-h-96 overflow-y-auto">
                           {Object.entries(combinations.trios || {})
                             .sort(([,a], [,b]) => b - a)
-                            .slice(0, 20)
+                            .slice(0, 50)
                             .map(([combo, freq], index) => (
                               <div key={combo} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                                 <span className="font-medium">#{index + 1} [{combo}]</span>
@@ -934,17 +936,17 @@ function App() {
                       </CardContent>
                     </Card>
 
-                    {/* Bottom 20 Trios */}
+                    {/* Bottom 50 Trios */}
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-lg">Bottom 20 Trios Menos Frequentes</CardTitle>
+                        <CardTitle className="text-lg">Bottom 50 Trios Menos Frequentes</CardTitle>
                         <CardDescription>Combinações de 3 números que menos saíram</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2 max-h-96 overflow-y-auto">
                           {Object.entries(combinations.trios || {})
                             .sort(([,a], [,b]) => a - b)
-                            .slice(0, 20)
+                            .slice(0, 50)
                             .map(([combo, freq], index) => (
                               <div key={combo} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                                 <span className="font-medium">#{index + 1} [{combo}]</span>
@@ -955,17 +957,17 @@ function App() {
                       </CardContent>
                     </Card>
 
-                    {/* Top 20 Quartetos */}
+                    {/* Top 50 Quartetos */}
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-lg">Top 20 Quartetos Mais Frequentes</CardTitle>
+                        <CardTitle className="text-lg">Top 50 Quartetos Mais Frequentes</CardTitle>
                         <CardDescription>Combinações de 4 números que mais saíram</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2 max-h-96 overflow-y-auto">
                           {Object.entries(combinations.quartets || {})
                             .sort(([,a], [,b]) => b - a)
-                            .slice(0, 20)
+                            .slice(0, 50)
                             .map(([combo, freq], index) => (
                               <div key={combo} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                                 <span className="font-medium">#{index + 1} [{combo}]</span>
@@ -976,17 +978,17 @@ function App() {
                       </CardContent>
                     </Card>
 
-                    {/* Top 20 Quintetos */}
+                    {/* Top 50 Quintetos */}
                     <Card>
                       <CardHeader>
-                        <CardTitle className="text-lg">Top 20 Quintetos Mais Frequentes</CardTitle>
+                        <CardTitle className="text-lg">Top 50 Quintetos Mais Frequentes</CardTitle>
                         <CardDescription>Combinações de 5 números que mais saíram</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2 max-h-96 overflow-y-auto">
                           {Object.entries(combinations.quintets || {})
                             .sort(([,a], [,b]) => b - a)
-                            .slice(0, 20)
+                            .slice(0, 50)
                             .map(([combo, freq], index) => (
                               <div key={combo} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                                 <span className="font-medium">#{index + 1} [{combo}]</span>
@@ -1034,7 +1036,7 @@ function App() {
                     </CardHeader>
                     <CardContent>
                       <div className="space-y-3 max-h-96 overflow-y-auto">
-                        {megaSenaData.slice(0, 50).map((draw, index) => (
+                        {megaSenaData.slice(-50).reverse().map((draw, index) => (
                           <div key={draw.Concurso || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                             <div className="flex items-center space-x-3">
                               <div className="text-sm font-medium text-gray-600">
