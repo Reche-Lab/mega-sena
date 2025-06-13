@@ -156,6 +156,7 @@ function App() {
             // Processar Excel
             workbook = XLSX.read(data, { type: "array" })
             const sheetName = workbook.SheetNames[0]
+            console.log("Checking data sheetName:", sheetName)
             const worksheet = workbook.Sheets[sheetName]
             const jsonData = XLSX.utils.sheet_to_json(worksheet, { raw: false })
             
@@ -171,9 +172,6 @@ function App() {
                   const dateParts = newRow["Data do Sorteio"].split("/")
                   if (dateParts.length === 3) {
                     newRow["Data do Sorteio"] = `${dateParts[0]}/${dateParts[1]}/${dateParts[2]}`
-                  } else {
-                    // Tentar parsear outros formatos de data se necessário
-                    newRow["Data do Sorteio"] = newRow["Data do Sorteio"]
                   }
                 }
               }
@@ -224,7 +222,7 @@ function App() {
       const rowNumber = index + 1
       
       // Validar números das bolas
-      const balls = [row.Bola1, row.Bola2, row.Bola3, row.Bola4, row.Bola5, row.Bola6]
+      const balls = [parseFloat(row.Bola1), parseFloat(row.Bola2), parseFloat(row.Bola3), parseFloat(row.Bola4), parseFloat(row.Bola5), parseFloat(row.Bola6)]
       const validBalls = balls.filter(ball => Number.isInteger(ball) && ball >= 1 && ball <= 60)
       
       if (validBalls.length !== 6) {
@@ -397,6 +395,7 @@ function App() {
       
       // Processar arquivo
       const data = await processFile(file)
+      console.log(data)
       console.log('Dados processados:', data.length, 'registros')
       
       // Validar dados
