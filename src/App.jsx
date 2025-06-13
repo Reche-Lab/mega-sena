@@ -380,11 +380,11 @@ function App() {
     mostFrequent: Object.entries(frequencies)
       .map(([num, freq]) => ({ number: parseInt(num), frequency: freq }))
       .sort((a, b) => b.frequency - a.frequency)
-      .slice(0, 21),
+      .slice(0, 30),
     leastFrequent: Object.entries(frequencies)
       .map(([num, freq]) => ({ number: parseInt(num), frequency: freq }))
       .sort((a, b) => a.frequency - b.frequency)
-      .slice(0, 21)
+      .slice(0, 30)
   } : mockStats
   
   const handleFileUpload = useCallback(async (file) => {
@@ -695,7 +695,7 @@ function App() {
                       <TrendingUp className="h-4 w-4 text-orange-500" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold text-orange-600">21</div>
+                      <div className="text-2xl font-bold text-orange-600">30</div>
                       <p className="text-xs text-muted-foreground">Mais frequentes</p>
                     </CardContent>
                   </Card>
@@ -706,7 +706,7 @@ function App() {
                       <Calendar className="h-4 w-4 text-blue-500" />
                     </CardHeader>
                     <CardContent>
-                      <div className="text-2xl font-bold text-blue-600">21</div>
+                      <div className="text-2xl font-bold text-blue-600">30</div>
                       <p className="text-xs text-muted-foreground">Menos frequentes</p>
                     </CardContent>
                   </Card>
@@ -720,7 +720,7 @@ function App() {
                       <CardDescription>Top números mais sorteados</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-3 gap-3 pt-2 max-h-90 overflow-y-auto">
                         {currentStats.mostFrequent.map(({ number, frequency }) => (
                           <LotteryBall 
                             key={`hot-${number}`}
@@ -739,7 +739,7 @@ function App() {
                       <CardDescription>Top números menos sorteados</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <div className="grid grid-cols-3 gap-3">
+                      <div className="grid grid-cols-3 gap-3 pt-2 max-h-90 overflow-y-auto">
                         {currentStats.leastFrequent.map(({ number, frequency }) => (
                           <LotteryBall 
                             key={`cold-${number}`}
